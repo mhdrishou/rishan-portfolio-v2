@@ -31,24 +31,22 @@ function checkRateLimit(ip: string): boolean {
 }
 
 async function sendEmail(data: { name: string; email: string; subject: string; message: string }) {
-  const nodemailer = await import('nodemailer')
+  const resendApiKey = process.env.RESEND_API_KEY
   
-  const transporter = nodemailer.default.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.office365.com',
-    port: 587,
-    secure: false,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
+  if (!resendApiKey) {
+    throw new Error('RESEND_API_KEY not configured')
+  }
+
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${resendApiKey}`,
     },
-  })
-
-  const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER
-
-  try {
-    await transporter.sendMail({
-      from: process.env.SMTP_USER,
-      to: adminEmail,
+    body: JSON.stringify({
+      from: 'Rishan Portfolio <onboarding@resend.dev>',
+      to: [data.email],
+      bcc: ['mhdrishou@gmail.com'],
       subject: `Portfolio Contact: ${data.subject}`,
       html: `
         <div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -62,24 +60,16 @@ async function sendEmail(data: { name: string; email: string; subject: string; m
           </div>
         </div>
       `,
-    })
+    }),
+  })
 
-    await transporter.sendMail({
-      from: process.env.SMTP_USER,
-      to: data.email,
-      subject: 'Thank you for reaching out!',
-      html: `
-        <div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #1A1A2E;">Thank you, ${data.name}!</h2>
-          <p>I've received your message and will get back to you soon.</p>
-          <p>Best regards,<br>Rishan</p>
-        </div>
-      `,
-    })
-  } catch (emailError) {
-    console.error('Email error:', emailError)
+  if (!response.ok) {
+    const error = await response.text()
+    console.error('Resend error:', error)
     throw new Error('Failed to send email')
   }
+
+  return response.json()
 }
 
 export async function POST(request: NextRequest) {
