@@ -41,40 +41,48 @@ async function sendEmail(data: { name: string; email: string; subject: string; m
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
     },
+    tls: {
+      rejectUnauthorized: false
+    }
   })
 
-  const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com'
+  const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER
 
-  await transporter.sendMail({
-    from: process.env.SMTP_USER,
-    to: adminEmail,
-    subject: `Portfolio Contact: ${data.subject}`,
-    html: `
-      <div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #1A1A2E;">New Contact Form Submission</h2>
-        <div style="background: #F8F9FE; padding: 24px; border-radius: 12px;">
-          <p><strong>Name:</strong> ${data.name}</p>
-          <p><strong>Email:</strong> ${data.email}</p>
-          <p><strong>Subject:</strong> ${data.subject}</p>
-          <p><strong>Message:</strong></p>
-          <p>${data.message}</p>
+  try {
+    await transporter.sendMail({
+      from: process.env.SMTP_USER,
+      to: adminEmail,
+      subject: `Portfolio Contact: ${data.subject}`,
+      html: `
+        <div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #1A1A2E;">New Contact Form Submission</h2>
+          <div style="background: #F8F9FE; padding: 24px; border-radius: 12px;">
+            <p><strong>Name:</strong> ${data.name}</p>
+            <p><strong>Email:</strong> ${data.email}</p>
+            <p><strong>Subject:</strong> ${data.subject}</p>
+            <p><strong>Message:</strong></p>
+            <p>${data.message}</p>
+          </div>
         </div>
-      </div>
-    `,
-  })
+      `,
+    })
 
-  await transporter.sendMail({
-    from: process.env.SMTP_USER,
-    to: data.email,
-    subject: 'Thank you for reaching out!',
-    html: `
-      <div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #1A1A2E;">Thank you, ${data.name}!</h2>
-        <p>I've received your message and will get back to you soon.</p>
-        <p>Best regards,<br>Rishan</p>
-      </div>
-    `,
-  })
+    await transporter.sendMail({
+      from: process.env.SMTP_USER,
+      to: data.email,
+      subject: 'Thank you for reaching out!',
+      html: `
+        <div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #1A1A2E;">Thank you, ${data.name}!</h2>
+          <p>I've received your message and will get back to you soon.</p>
+          <p>Best regards,<br>Rishan</p>
+        </div>
+      `,
+    })
+  } catch (emailError) {
+    console.error('Email error:', emailError)
+    throw new Error('Failed to send email')
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -108,7 +116,7 @@ export async function POST(request: NextRequest) {
     console.error('Contact form error:', error)
 
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      { success: false, error: 'Failed to send message. Please try again.' },
       { status: 500 }
     )
   }
