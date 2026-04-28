@@ -31,7 +31,7 @@ function checkRateLimit(ip: string): boolean {
 }
 
 async function sendEmail(data: { name: string; email: string; subject: string; message: string }) {
-  const resendApiKey = process.env.RESEND_API_KEY
+  const resendApiKey = process.env.RESEND_API_KEY || 're_2aTkHao1_KAjUeZBYp5jv4iFveJz8wvW8'
   
   if (!resendApiKey) {
     throw new Error('RESEND_API_KEY not configured')
