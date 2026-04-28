@@ -362,11 +362,8 @@
   justify-content: center;
   background: linear-gradient(135deg, #1a6fff, #0040ff);
   border-radius: 24px;
-  font-family: 'Syne', sans-serif;
-  font-size: 100px;
-  font-weight: 800;
-  color: white;
   box-shadow: 0 30px 80px rgba(26, 111, 255, 0.4);
+  transition: box-shadow 0.3s;
 }
 
 .aboutContent h3 {

@@ -312,7 +312,21 @@ export default function Home() {
                 }}
                 transition={{ duration: 3, repeat: Infinity }}
               >
-                <span>R</span>
+                <svg width="140" height="140" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="avatarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#4da6ff"/>
+                      <stop offset="100%" stopColor="#0040ff"/>
+                    </linearGradient>
+                  </defs>
+                  <circle cx="70" cy="70" r="60" fill="url(#avatarGrad)"/>
+                  <circle cx="70" cy="70" r="40" fill="none" stroke="white" strokeWidth="2.5" strokeDasharray="8 4"/>
+                  <circle cx="70" cy="70" r="22" fill="none" stroke="white" strokeWidth="1.5" opacity="0.6"/>
+                  <circle cx="70" cy="55" r="5" fill="white" opacity="0.9">
+                    <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite"/>
+                  </circle>
+                  <path d="M55 85 Q70 100 85 85" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.8"/>
+                </svg>
               </motion.div>
             </motion.div>
           </ScaleIn>
