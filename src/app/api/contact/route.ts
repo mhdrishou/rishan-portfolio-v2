@@ -45,31 +45,30 @@ async function sendEmail(data: { name: string; email: string; subject: string; m
     },
     body: JSON.stringify({
       from: 'Rishan Portfolio <onboarding@resend.dev>',
-      to: [data.email],
-      bcc: ['mhdrishou@gmail.com'],
-      subject: `Portfolio Contact: ${data.subject}`,
+      to: ['mhdrishou@gmail.com'],
+      reply_to: data.email,
+      subject: `Portfolio: ${data.subject}`,
       html: `
-        <div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #1A1A2E;">New Contact Form Submission</h2>
-          <div style="background: #F8F9FE; padding: 24px; border-radius: 12px;">
-            <p><strong>Name:</strong> ${data.name}</p>
-            <p><strong>Email:</strong> ${data.email}</p>
-            <p><strong>Subject:</strong> ${data.subject}</p>
-            <p><strong>Message:</strong></p>
-            <p>${data.message}</p>
-          </div>
+        <div style="font-family: Inter, sans-serif; max-width: 600px;">
+          <h2>New Contact Form Submission</h2>
+          <p><strong>Name:</strong> ${data.name}</p>
+          <p><strong>Email:</strong> ${data.email}</p>
+          <p><strong>Subject:</strong> ${data.subject}</p>
+          <p><strong>Message:</strong></p>
+          <p>${data.message.replace(/\n/g, '<br>')}</p>
         </div>
       `,
     }),
   })
 
+  const responseData = await response.json()
+  
   if (!response.ok) {
-    const error = await response.text()
-    console.error('Resend error:', error)
-    throw new Error('Failed to send email')
+    console.error('Resend error:', responseData)
+    throw new Error(responseData.message || 'Failed to send email')
   }
 
-  return response.json()
+  return responseData
 }
 
 export async function POST(request: NextRequest) {
