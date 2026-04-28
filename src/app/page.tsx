@@ -6,14 +6,14 @@ import styles from './app.module.css'
 
 function FadeIn({ children, delay = 0 }: { children: React.ReactNode, delay?: number }) {
   const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: '-100px' })
+  const isInView = useInView(ref, { once: true, margin: '-50px' })
   
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 50 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.8, delay, ease: 'easeOut' }}
+      initial={{ opacity: 0, y: 80, scale: 0.95 }}
+      animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
+      transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }}
     >
       {children}
     </motion.div>
@@ -22,14 +22,14 @@ function FadeIn({ children, delay = 0 }: { children: React.ReactNode, delay?: nu
 
 function ScaleIn({ children }: { children: React.ReactNode }) {
   const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: '-50px' })
+  const isInView = useInView(ref, { once: true, margin: '-30px' })
   
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={isInView ? { opacity: 1, scale: 1 } : {}}
-      transition={{ duration: 0.6 }}
+      initial={{ opacity: 0, scale: 0.8, rotateX: -20 }}
+      animate={isInView ? { opacity: 1, scale: 1, rotateX: 0 } : {}}
+      transition={{ duration: 0.5, ease: 'easeOut' }}
     >
       {children}
     </motion.div>
@@ -52,16 +52,45 @@ function RotatingWords() {
       <AnimatePresence mode="wait">
         <motion.span
           key={current}
-          initial={{ opacity: 0, rotateX: -90, y: 20 }}
-          animate={{ opacity: 1, rotateX: 0, y: 0 }}
-          exit={{ opacity: 0, rotateX: 90, y: -20 }}
-          transition={{ duration: 0.5 }}
+          initial={{ opacity: 0, rotateX: -90, y: 20, filter: 'blur(10px)' }}
+          animate={{ opacity: 1, rotateX: 0, y: 0, filter: 'blur(0px)' }}
+          exit={{ opacity: 0, rotateX: 90, y: -20, filter: 'blur(10px)' }}
+          transition={{ duration: 0.4 }}
           className={styles.rotatingWord}
         >
           {words[current]}
         </motion.span>
       </AnimatePresence>
     </div>
+  )
+}
+
+function MagneticButton({ children, className, href }: { children: React.ReactNode, className?: string, href: string }) {
+  const ref = useRef<HTMLAnchorElement>(null)
+  const [position, setPosition] = useState({ x: 0, y: 0 })
+  
+  const handleMouse = (e: React.MouseEvent) => {
+    const rect = ref.current?.getBoundingClientRect()
+    if (!rect) return
+    const x = e.clientX - rect.left - rect.width / 2
+    const y = e.clientY - rect.top - rect.height / 2
+    setPosition({ x: x * 0.3, y: y * 0.3 })
+  }
+  
+  const reset = () => setPosition({ x: 0, y: 0 })
+  
+  return (
+    <motion.a
+      ref={ref}
+      href={href}
+      className={className}
+      onMouseMove={handleMouse}
+      onMouseLeave={reset}
+      animate={{ x: position.x, y: position.y }}
+      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+    >
+      {children}
+    </motion.a>
   )
 }
 
@@ -107,106 +136,226 @@ export default function Home() {
         <div className={styles.wave2} />
         <div className={styles.wave3} />
         <div className={styles.wave4} />
+        <div className={styles.particles}>
+          {Array.from({ length: 30 }).map((_, i) => (
+            <motion.div
+              key={i}
+              className={styles.particle}
+              animate={{
+                y: [0, -100, 0],
+                opacity: [0, 1, 0],
+                scale: [0, 1, 0]
+              }}
+              transition={{
+                duration: 3 + Math.random() * 2,
+                repeat: Infinity,
+                delay: Math.random() * 2
+              }}
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`
+              }}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Navigation */}
-      <nav className={styles.navbar}>
+      <motion.nav 
+        className={styles.navbar}
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+      >
         <div className={styles.navContent}>
-          <a href="#hero" className={styles.logo}>Rishan</a>
+          <motion.a 
+            href="#hero" 
+            className={styles.logo}
+            whileHover={{ scale: 1.1, textShadow: '0 0 30px rgba(77,166,255,0.8)' }}
+          >RISHA N</motion.a>
           <div className={styles.navLinks}>
-            <a href="#about">About</a>
-            <a href="#skills">Skills</a>
-            <a href="#services">Services</a>
-            <a href="#contact">Contact</a>
+            {['About', 'Skills', 'Services', 'Contact'].map((item, i) => (
+              <motion.a
+                key={item}
+                href={`#${item.toLowerCase()}`}
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 * i }}
+                whileHover={{ scale: 1.1, color: '#4da6ff' }}
+              >
+                {item}
+              </motion.a>
+            ))}
           </div>
         </div>
-      </nav>
+      </motion.nav>
 
       {/* Hero Section */}
       <section id="hero" className={styles.hero}>
         <FadeIn>
-          <span className={styles.heroTag}>Web Developer & Designer</span>
+          <motion.span 
+            className={styles.heroTag}
+            animate={{ 
+              boxShadow: ['0 0 20px rgba(77,166,255,0.3)', '0 0 40px rgba(77,166,255,0.6)', '0 0 20px rgba(77,166,255,0.3)']
+            }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            Web Developer & Designer
+          </motion.span>
         </FadeIn>
+        
         <FadeIn delay={0.1}>
           <h1 className={styles.heroTitle}>
             Crafting Digital<br />
             <span className={styles.connector}>with </span>
-            <span className={styles.heroWrapper}>
-              <span className={styles.keyword}>Experiences</span>
+            <div className={styles.heroWrapper}>
+              <motion.span 
+                className={styles.keyword}
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3, duration: 0.8 }}
+              >
+                Experiences
+              </motion.span>
               <RotatingWords />
-            </span>
-            <br />That Inspire
+            </div>
+            <motion.span
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              That Inspire
+            </motion.span>
           </h1>
         </FadeIn>
+        
         <FadeIn delay={0.2}>
-          <p className={styles.heroSubtitle}>
+          <motion.p 
+            className={styles.heroSubtitle}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+          >
             I blend cutting-edge web development with intuitive UI/UX design, 
             AI integration, and vibe coding to create stunning digital products.
-          </p>
+          </motion.p>
         </FadeIn>
+        
         <FadeIn delay={0.3}>
           <div className={styles.heroButtons}>
-            <a href="#contact" className={styles.btnPrimary}>Get In Touch</a>
-            <a href="#services" className={styles.btnSecondary}>View Services</a>
+            <MagneticButton href="#contact" className={styles.btnPrimary}>
+              Get In Touch
+            </MagneticButton>
+            <MagneticButton href="#services" className={styles.btnSecondary}>
+              View Services
+            </MagneticButton>
           </div>
         </FadeIn>
+        
         <FadeIn delay={0.4}>
-          <div className={styles.heroCards}>
-            <div className={styles.heroCard}>
-              <span>&#x1F3A8;</span>
-              <h3>UI/UX Design</h3>
-              <p>Beautiful interfaces</p>
-            </div>
-            <div className={styles.heroCard}>
-              <span>&#x1F916;</span>
-              <h3>AI Integration</h3>
-              <p>Smart automation</p>
-            </div>
-            <div className={styles.heroCard}>
-              <span>&#x26A1;</span>
-              <h3>Vibe Coding</h3>
-              <p>Modern development</p>
-            </div>
-          </div>
+          <motion.div 
+            className={styles.heroCards}
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+          >
+            {[
+              { icon: '&#x1F3A8;', title: 'UI/UX Design', desc: 'Beautiful interfaces' },
+              { icon: '&#x1F916;', title: 'AI Integration', desc: 'Smart automation' },
+              { icon: '&#x26A1;', title: 'Vibe Coding', desc: 'Modern development' },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                className={styles.heroCard}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 + i * 0.1 }}
+                whileHover={{ 
+                  scale: 1.08, 
+                  y: -10,
+                  transition: { type: 'spring', stiffness: 400 }
+                }}
+              >
+                <span dangerouslySetInnerHTML={{ __html: item.icon }} />
+                <h3>{item.title}</h3>
+                <p>{item.desc}</p>
+              </motion.div>
+            ))}
+          </motion.div>
         </FadeIn>
       </section>
 
       {/* About Section */}
       <section id="about" className={styles.section}>
         <FadeIn>
-          <h2 className={styles.sectionTitle}>About Me</h2>
-          <p className={styles.sectionSubtitle}>
-            Creating exceptional digital experiences
-          </p>
+          <motion.h2 
+            className={styles.sectionTitle}
+            initial={{ opacity: 0, scale: 0.8 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+          >
+            About Me
+          </motion.h2>
+          <p className={styles.sectionSubtitle}>Creating exceptional digital experiences</p>
         </FadeIn>
+        
         <div className={styles.aboutGrid}>
           <ScaleIn>
-            <div className={styles.aboutImage}>
-              <div className={styles.imagePlaceholder}><span>R</span></div>
-            </div>
+            <motion.div 
+              className={styles.aboutImage}
+              whileHover={{ rotate: [0, 2, -2, 0], transition: { duration: 0.5 } }}
+            >
+              <motion.div 
+                className={styles.imagePlaceholder}
+                animate={{ 
+                  boxShadow: ['0 20px 60px rgba(26,111,255,0.3)', '0 30px 80px rgba(77,166,255,0.5)', '0 20px 60px rgba(26,111,255,0.3)'] 
+                }}
+                transition={{ duration: 3, repeat: Infinity }}
+              >
+                <span>R</span>
+              </motion.div>
+            </motion.div>
           </ScaleIn>
+          
           <FadeIn delay={0.2}>
             <div className={styles.aboutContent}>
-              <h3>Rishan</h3>
+              <motion.h3
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+              >
+                Rishan
+              </motion.h3>
               <p className={styles.aboutRole}>Full-Stack Developer & Designer</p>
               <p className={styles.aboutDesc}>
                 Passionate developer specializing in creating stunning digital experiences.
                 Expertise in web development, UI/UX design, AI integration, and vibe coding.
               </p>
-              <div className={styles.stats}>
-                <div className={styles.statBox}>
-                  <span className={styles.statNum}>5+</span>
-                  <span className={styles.statLabel}>Years Exp</span>
-                </div>
-                <div className={styles.statBox}>
-                  <span className={styles.statNum}>50+</span>
-                  <span className={styles.statLabel}>Projects</span>
-                </div>
-                <div className={styles.statBox}>
-                  <span className={styles.statNum}>30+</span>
-                  <span className={styles.statLabel}>Clients</span>
-                </div>
-              </div>
+              <motion.div 
+                className={styles.stats}
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+              >
+                {[
+                  { num: '5+', label: 'Years Exp' },
+                  { num: '50+', label: 'Projects' },
+                  { num: '30+', label: 'Clients' },
+                ].map((stat, i) => (
+                  <motion.div
+                    key={i}
+                    className={styles.statBox}
+                    initial={{ scale: 0 }}
+                    whileInView={{ scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1, type: 'spring' }}
+                    whileHover={{ scale: 1.15 }}
+                  >
+                    <span className={styles.statNum}>{stat.num}</span>
+                    <span className={styles.statLabel}>{stat.label}</span>
+                  </motion.div>
+                ))}
+              </motion.div>
             </div>
           </FadeIn>
         </div>
@@ -218,6 +367,7 @@ export default function Home() {
           <h2 className={styles.sectionTitle}>Skills & Expertise</h2>
           <p className={styles.sectionSubtitle}>Technologies I use</p>
         </FadeIn>
+        
         <div className={styles.skillsGrid}>
           {[
             { icon: '&#x1F3AF;', title: 'Frontend', skills: ['React', 'Next.js', 'TypeScript', 'Tailwind'] },
@@ -228,8 +378,11 @@ export default function Home() {
             <ScaleIn key={i}>
               <motion.div 
                 className={styles.skillCard}
-                whileHover={{ scale: 1.03, y: -5 }}
-                transition={{ type: 'spring', stiffness: 300 }}
+                whileHover={{ 
+                  scale: 1.05, 
+                  rotateY: [0, 5, -5, 0],
+                  transition: { duration: 0.3 }
+                }}
               >
                 <span className={styles.skillIcon} dangerouslySetInnerHTML={{ __html: item.icon }} />
                 <h3>{item.title}</h3>
@@ -246,6 +399,7 @@ export default function Home() {
           <h2 className={styles.sectionTitle}>Services</h2>
           <p className={styles.sectionSubtitle}>Solutions for your needs</p>
         </FadeIn>
+        
         <div className={styles.servicesGrid}>
           {[
             { icon: '&#x1F4BB;', title: 'Web Development', desc: 'Custom websites and apps built with modern tech.', features: ['Web Apps', 'E-commerce', 'CMS', 'API'] },
@@ -256,13 +410,17 @@ export default function Home() {
             <ScaleIn key={i}>
               <motion.div 
                 className={styles.serviceCard}
-                whileHover={{ scale: 1.02 }}
+                whileHover={{ 
+                  scale: 1.03,
+                  boxShadow: '0 20px 60px rgba(77,166,255,0.3)',
+                  transition: { type: 'spring', stiffness: 300 }
+                }}
               >
                 <span className={styles.serviceIcon} dangerouslySetInnerHTML={{ __html: item.icon }} />
                 <h3>{item.title}</h3>
                 <p>{item.desc}</p>
                 <ul>{item.features.map((f, j) => <li key={j}>{f}</li>)}</ul>
-                <a href="#contact" className={styles.learnMore}>Learn More &#x2192;</a>
+                <a href="#contact" className={styles.learnMore}>Learn More →</a>
               </motion.div>
             </ScaleIn>
           ))}
@@ -275,47 +433,52 @@ export default function Home() {
           <h2 className={styles.sectionTitle}>Get In Touch</h2>
           <p className={styles.sectionSubtitle}>Let&apos;s create something amazing</p>
         </FadeIn>
+        
         <FadeIn delay={0.2}>
           <div className={styles.contactForm}>
             <form onSubmit={handleSubmit}>
               <div className={styles.formRow}>
-                <input
+                <motion.input
                   type="text"
                   name="name"
                   placeholder="Your Name"
                   value={formData.name}
                   onChange={handleChange}
                   className={styles.formInput}
+                  whileFocus={{ scale: 1.02, borderColor: '#4da6ff' }}
                 />
-                <input
+                <motion.input
                   type="email"
                   name="email"
                   placeholder="Your Email"
                   value={formData.email}
                   onChange={handleChange}
                   className={styles.formInput}
+                  whileFocus={{ scale: 1.02, borderColor: '#4da6ff' }}
                 />
               </div>
-              <input
+              <motion.input
                 type="text"
                 name="subject"
                 placeholder="Subject"
                 value={formData.subject}
                 onChange={handleChange}
                 className={styles.formInput}
+                whileFocus={{ scale: 1.02, borderColor: '#4da6ff' }}
               />
-              <textarea
+              <motion.textarea
                 name="message"
                 placeholder="Your Message"
                 rows={5}
                 value={formData.message}
                 onChange={handleChange}
                 className={styles.formTextarea}
+                whileFocus={{ scale: 1.02, borderColor: '#4da6ff' }}
               />
               <motion.button 
                 type="submit" 
                 className={styles.submitBtn}
-                whileHover={{ scale: 1.02 }}
+                whileHover={{ scale: 1.05, boxShadow: '0 0 50px rgba(26,111,255,0.7)' }}
                 whileTap={{ scale: 0.98 }}
                 disabled={formStatus === 'loading'}
               >
@@ -334,7 +497,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className={styles.footer}>
-        <p>&copy; 2024 Rishan. All rights reserved.</p>
+        <p>© 2024 Rishan. All rights reserved.</p>
       </footer>
     </div>
   )
